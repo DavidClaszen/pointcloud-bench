@@ -1,0 +1,11 @@
+name: pcb-pct
+channels: [pytorch, nvidia, conda-forge]
+dependencies:
+  - python=3.10
+  - pytorch=2.3
+  - torchvision
+  - numpy
+  - tqdm
+  - hydra-core=1.2.*
+  - omegaconf=2.2.3
+  - pip

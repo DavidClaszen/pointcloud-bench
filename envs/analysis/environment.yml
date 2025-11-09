@@ -1,0 +1,13 @@
+name: pcb-analysis
+channels: [conda-forge]
+dependencies:
+  - python=3.10
+  - jupyterlab
+  - ipykernel
+  - numpy
+  - pandas
+  - matplotlib
+  - plotly
+  - scikit-learn
+  - rich
+  - tqdm

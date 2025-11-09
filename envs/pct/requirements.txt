@@ -1,0 +1,7 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.3.1
+torchvision==0.18.1
+numpy>=1.23
+tqdm
+hydra-core==1.2.*
+omegaconf==2.2.3
