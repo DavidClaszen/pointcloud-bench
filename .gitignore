@@ -1,0 +1,22 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.DS_Store
+.vscode
+
+# Python
+__pycache__/
+*.pyc
+
+# Test cache
+.pytest_cache
+
+# Outputs & data
+datasets/**
+!datasets/.gitkeep
+
+runs/**
+!runs/.gitkeep
