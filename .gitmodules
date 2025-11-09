@@ -1,0 +1,6 @@
+[submodule "repos/PAPNet"]
+	path = repos/PAPNet
+	url = https://github.com/DavidClaszen/PAPNet.git
+[submodule "repos/Point-Transformers"]
+	path = repos/Point-Transformers
+	url = https://github.com/DavidClaszen/Point-Transformers.git
