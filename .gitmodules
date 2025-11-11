@@ -4,3 +4,4 @@
 [submodule "repos/Point-Transformers"]
 	path = repos/Point-Transformers
 	url = https://github.com/DavidClaszen/Point-Transformers.git
+	branch = main
