@@ -1,13 +1,15 @@
 name: pcb-papnet
 channels: [pytorch, nvidia, conda-forge]
 dependencies:
-  - python=3.7.12
-  - pytorch=1.6.0
-  - torchvision=0.7.0
+  - python=3.11.14
   - numpy
   - scipy
   - pyyaml
   - tqdm
   - pip
-  - pip: # se3cnn might be old and incompatible; can update to e3nn but PAPNet might not support that
-      - git+https://github.com/mariogeiger/se3cnn@546bc682887e1cb5e16b484c158c05f03377e4e9
+  - transforms3d
+  - pip:
+    - lie_learn
+    - torch==2.6.0 --index-url https://download.pytorch.org/whl/cu118
+    - torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu118
+    - git+https://github.com/mariogeiger/se3cnn@546bc682887e1cb5e16b484c158c05f03377e4e9
