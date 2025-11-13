@@ -1,9 +1,22 @@
 #!/usr/bin/env python
 """
-Thin launcher for qq456cvb/Point-Transformers classification training.
+Thin launcher for qq456cvb/Point-Transformers training.
+
+- Creates dataset symlink so hardcoded repo paths resolve
+- Writes runs/pct/<timestamp>/{provenance.json, train.log,
+    metrics.json, best_model.pth?}
+- Streams trainer logs live (and tees to train.log)
 """
 from __future__ import annotations
-import argparse, json, os, subprocess, sys, time, traceback # noqa
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+import shlex
 from pathlib import Path
 
 # --- paths ------------------------------------------------------------
@@ -11,48 +24,33 @@ ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT / 'repos' / 'Point-Transformers'
 DATA_DEFAULT = ROOT / 'datasets' / 'modelnet40_normal_resampled'
 
-
-def run_and_report(cmd, cwd, env=None):
-    """Run a command, streaming output.
-    On failure, print captured stderr/stdout.
-    """
-    try:
-        proc = subprocess.Popen(cmd, cwd=str(cwd), env=env)
-        ret = proc.wait()
-        if ret != 0:
-            raise subprocess.CalledProcessError(ret, cmd)
-    except subprocess.CalledProcessError as e:
-        print('\n[ERROR] Subprocess failed:')
-        print('  CWD:', cwd)
-        print('  CMD:', ' '.join(map(str, e.cmd)))
-        print('  RETURN CODE:', e.returncode)
-        # Suggest direct run for deeper trace
-        print('\nTip: run this directly in a cell for full traceback:')
-        print(f"%cd {cwd}\n!python -u {' '.join(map(str, cmd[1:]))}")
-        raise
+# Show full Hydra tracebacks
+os.environ['HYDRA_FULL_ERROR'] = '1'
 
 
 def ensure_symlink(target: Path, link: Path) -> None:
     """Create/refresh `link` -> `target` symlink if needed."""
-    link_parent = link.parent
-    link_parent.mkdir(parents=True, exist_ok=True)
+    link.parent.mkdir(parents=True, exist_ok=True)
     try:
         if link.exists() or link.is_symlink():
-            # If it points somewhere else, replace it
-            if link.resolve() != target.resolve():
-                link.unlink()
+            try:
+                if link.resolve() != target.resolve():
+                    link.unlink()
+                    link.symlink_to(target, target_is_directory=True)
+            except FileNotFoundError:
+                # If the target doesn't exist yet, just relink
+                link.unlink(missing_ok=True)
                 link.symlink_to(target, target_is_directory=True)
         else:
             link.symlink_to(target, target_is_directory=True)
     except OSError as e:
-        print(f'[warn] Could not create symlink {link} -> {target}: {e}')
+        print(f"[warn] Could not create symlink {link} -> {target}: {e}")
 
 
 def git_rev(path: Path) -> str:
     try:
         return subprocess.check_output(
-            ['git', 'rev-parse', 'HEAD'],
-            cwd=path
+            ['git', 'rev-parse', 'HEAD'], cwd=path
         ).decode().strip()
     except Exception:
         return 'unknown'
@@ -74,23 +72,24 @@ def main():
         '(default: datasets/modelnet40_normal_resampled)'
     )
     ap.add_argument(
-        'extra',
-        nargs=argparse.REMAINDER,
-        help='Pass-through args for train_cls.py (Hydra overrides etc). '
-        'Prefix with -- to separate, e.g. -- trainer.fast_dev_run=1'
-    )
-    ap.add_argument(
         '--no-symlink',
         action='store_true',
         help='Skip creating dataset symlink inside the repo'
     )
+    ap.add_argument(
+        'extra',
+        nargs=argparse.REMAINDER,
+        help='Pass-through args for train_cls.py (Hydra overrides etc). '
+        'You may prefix with --'
+    )
     args = ap.parse_args()
 
-    # 1) decide output directory
-    out = args.out or (ROOT / 'runs' / 'pct' / time.strftime('%Y%m%d-%H%M%S'))
+    # 1) Decide output directory
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    out = args.out or (ROOT / 'runs' / 'pct' / ts)
     out.mkdir(parents=True, exist_ok=True)
 
-    # 2) provenance
+    # 2) Provenance
     meta = {
         'model': 'Point-Transformers (PCT variant)',
         'repo_path': str(REPO),
@@ -98,8 +97,8 @@ def main():
         'bench_commit': git_rev(ROOT),
         'time': time.strftime('%Y-%m-%d %H:%M:%S'),
         'argv': sys.argv,
+        'python': sys.version
     }
-    # Try to capture torch/cuda if available in this env
     try:
         import torch  # type: ignore
         meta.update({
@@ -112,22 +111,31 @@ def main():
         pass
     (out / 'provenance.json').write_text(json.dumps(meta, indent=2))
 
-    # 3) dataset symlink
-    #    (so hardcoded repo paths like ../../datasets/... resolve)
-    #    The repo often expects a folder named 'modelnet40_normal_resampled'
-    #    in its root.
+    # 3) Dataset symlink so hardcoded repo paths resolve
     if not args.no_symlink:
         ensure_symlink(args.data, REPO / 'modelnet40_normal_resampled')
 
-    # 4) build command: forward all overrides transparently
-    #    You can put hydra overrides after '--', e.g. optimizer.lr=0.001
-    #    If you just want help: scripts/train_pct.py -- --help
-    cmd = [sys.executable, 'train_cls.py', *args.extra]
-    print('>>> CWD:', REPO)
-    print('>>>', ' '.join(map(str, cmd)))
+    # 4) Build trainer command
+    extra = list(args.extra)
+    if extra and extra[0] == '--':
+        extra = extra[1:]
+    cmd_list = [sys.executable, '-u', 'train_cls.py', *extra]
 
-    # 5) run from the repo root
-    run_and_report(cmd, cwd=REPO)
+    # 5) Run, log
+    env = os.environ.copy()
+    log_path = (out / 'train.log').resolve()
+    os.chdir(REPO)
+    script_bin = shutil.which('script')
+    if script_bin:
+        cmd_str = ' '.join(shlex.quote(c) for c in cmd_list)
+        run_cmd = [script_bin, '-q', '-f', str(log_path), '-c', cmd_str]
+        print('>>>', ' '.join(run_cmd))
+        rc = subprocess.call(run_cmd, env=env)
+        sys.exit(rc)
+    else:
+        print("[warn] 'script' not found; running without tee (no train.log).")
+        print('>>>', ' '.join(cmd_list))
+        os.execvpe(cmd_list[0], cmd_list, env)
 
 
 if __name__ == '__main__':
