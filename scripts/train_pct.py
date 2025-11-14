@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 """
-Thin launcher for qq456cvb/Point-Transformers training.
-
-- Creates dataset symlink so hardcoded repo paths resolve
-- Writes runs/pct/<timestamp>/{provenance.json, train.log,
-    metrics.json, best_model.pth?}
-- Streams trainer logs live (and tees to train.log)
+Thin launcher and logger for qq456cvb/Point-Transformers training.
 """
 from __future__ import annotations
 
