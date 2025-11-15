@@ -10,6 +10,6 @@ dependencies:
   - transforms3d
   - pip:
     - lie_learn
-    - torch==2.6.0 --index-url https://download.pytorch.org/whl/cu118
-    - torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu118
-    - git+https://github.com/mariogeiger/se3cnn@546bc682887e1cb5e16b484c158c05f03377e4e9
+    - transforms3d
+    - torch==2.8.0 --index-url https://download.pytorch.org/whl/cu126
+    - torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
