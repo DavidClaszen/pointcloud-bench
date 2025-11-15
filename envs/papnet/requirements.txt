@@ -5,5 +5,5 @@ numpy
 scipy
 pyyaml
 tqdm
-lie_learn
+lie_learn @ git+https://github.com/AMLab-Amsterdam/lie_learn@master
 transforms3d
