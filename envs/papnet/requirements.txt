@@ -6,4 +6,4 @@ scipy
 pyyaml
 tqdm
 lie_learn
-transforms3d --no-deps
+transforms3d
