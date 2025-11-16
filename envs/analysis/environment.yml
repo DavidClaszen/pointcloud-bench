@@ -11,3 +11,6 @@ dependencies:
   - scikit-learn
   - rich
   - tqdm
+  - open3d
+  - trimesh
+  - ipympl
