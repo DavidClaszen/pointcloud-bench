@@ -2,9 +2,9 @@ name: pcb-analysis
 channels: [conda-forge]
 dependencies:
   - python=3.10
+  - numpy=1.26.4
   - jupyterlab
   - ipykernel
-  - numpy
   - pandas
   - matplotlib
   - plotly
