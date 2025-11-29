@@ -6,10 +6,10 @@ dependencies:
   - scipy
   - pyyaml
   - tqdm
-  - pip
   - transforms3d
   - pip:
-    - lie_learn
+    - tensorboardX
+    - git+https://github.com/AMLab-Amsterdam/lie_learn@master
     - transforms3d
     - torch==2.8.0 --index-url https://download.pytorch.org/whl/cu126
     - torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu126
