@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import open3d as o3d
 from mpl_toolkits.mplot3d import Axes3D  # noqa
+from typing import Union
 
 
 def visualize_cloud(
@@ -82,17 +83,47 @@ def visualize_3d(
 
 
 def visualize_samples(
-    data: np.array,
-    indices: list[int],
+    data: Union[list[np.array], np.array],
     title: str,
-    point_size: int = 0.8
+    indices: list[int] = None,
+    figsize: tuple = (12, 8),
+    plot_dims: tuple = (2, 3),
+    labels: list[str] = None,
+    point_size: list[int] = None,
+    font_size: int = 8
 ):
+    """Visualize multiple samples using `visualize_cloud`
+
+    Args:
+        data (list[np.array]): Either an array (n, points, 6) where n=samples,
+            points=point clouds, 6 = 3 dimensions + 3 normals, or a list of
+            arrays, with each list item a single row (to accommodate different
+            data sizes).
+        title (str): Title for the whole plot.
+        indices (list[int]): List of integer indices to visualize. If None,
+            defaults to integers for 0:len(data).
+        figsize (tuple): Tuple of dimensions for figure size, default (12, 8).
+        plot_dims (tuple(int)): How many rows and columns of plots to plot,
+            defaults to (2, 3).
+        labels (list[str], optional): List of titles for each individual plot.
+            Defaults to None.
+        point_size (list[int], optional): List of sizes of visualized points,
+            can be different for each plot. Defaults to 0.8 if None.
+        font_size (int): Font size of subplot titles, defaults to 8.
+    """
+    plt.rcParams.update({'font.size': font_size})
     fig, axs = plt.subplots(
-        2, 3,
+        plot_dims[0],
+        plot_dims[1],
         subplot_kw={'projection': '3d'},
-        figsize=(12, 8)
+        figsize=figsize
     )
+    if indices is None:
+        indices = range(0, len(data))
+    if point_size is None:
+        point_size = [0.8 for _ in range(0, len(data))]
     sc = None
+    counter = 0
     for ax, idx in zip(axs.ravel(), indices):
         sc = visualize_cloud(
             data=data,
@@ -100,9 +131,13 @@ def visualize_samples(
             ax=ax,
             colorbar=False,
             return_sc=True,
-            point_size=point_size
+            point_size=point_size[counter]
         )
-        ax.set_title(f'Sample {idx}')
+        if labels is not None:
+            ax.set_title(labels[counter])
+        else:
+            ax.set_title(f'Sample {idx}')
+        counter += 1
 
     fig.suptitle(title, fontsize=16)
     plt.tight_layout()
