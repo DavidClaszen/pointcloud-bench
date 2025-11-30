@@ -1,0 +1,16 @@
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.3.1
+torchvision==0.18.1
+numpy>=1.23
+scipy
+seaborn
+hydra-core
+omegaconf
+pyyaml
+tqdm
+lie_learn @ git+https://github.com/AMLab-Amsterdam/lie_learn@master
+transforms3d
+tensorboardX
+open3d
+trimesh
+ipympl
