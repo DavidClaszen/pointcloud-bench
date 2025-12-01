@@ -1,0 +1,15 @@
+torch
+torchvision
+numpy
+scipy
+seaborn
+hydra-core
+omegaconf
+pyyaml
+tqdm
+lie_learn @ git+https://github.com/AMLab-Amsterdam/lie_learn@master
+transforms3d
+tensorboardX
+open3d
+trimesh
+ipympl
