@@ -182,7 +182,8 @@ def plot_log(
     df: pd.DataFrame,
     title: str = '',
     figsize: tuple[int, int] = (8, 5),
-    store_plots: str = None
+    store_plots: str = None,
+    font_size: int = 10
 ):
     """Plots learning curves for a df containing logs, with
         columns ['epochs', 'train', 'test', 'model']
@@ -193,8 +194,10 @@ def plot_log(
         figsize (tuple[int, int], optional): Size of the plot.
             Defaults to (8, 5).
         store_plots (str, optional): Path to store plots in. Defaults to None.
+        font_size (int, optional): Controls plot font size, defaults 10.
     """
     x = df.epochs
+    plt.rcParams.update({'font.size': font_size})
     plt.figure(figsize=figsize)
     plt.title(title)
     plt.xlabel('Epochs')
@@ -203,11 +206,11 @@ def plot_log(
     plt.plot(x, df.train, label='Train Accuracy')
     plt.plot(x, df.test, label='Test Accuracy')
     plt.grid()
-    plt.legend()
+    plt.legend(loc='lower right')
     plt.tight_layout()
     if store_plots is not None:
         plt.savefig(
-            os.path.join(store_plots, f'lc_{df.model[0]}.png'),
+            os.path.join(store_plots, f'curves_{df.model[0]}.png'),
             bbox_inches='tight'
         )
     plt.show()
