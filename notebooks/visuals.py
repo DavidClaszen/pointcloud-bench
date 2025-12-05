@@ -1,6 +1,9 @@
+import re
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import open3d as o3d
+import pandas as pd
 from mpl_toolkits.mplot3d import Axes3D  # noqa
 from typing import Union
 
@@ -142,3 +145,73 @@ def visualize_samples(
     fig.suptitle(title, fontsize=16)
     plt.tight_layout()
     plt.show()
+
+
+def parse_log(
+    path: str,
+    filename: str,
+    model_pattern: str = '(.*)\.'  # noqa
+) -> pd.DataFrame:
+    """Parses PCT logs by regex, returns a df with
+        columns ['epochs', 'train', 'test', 'model']
+    Args:
+        path (str): Path to the log folder
+        file (str): Name of the log
+    Returns:
+        pd.DataFrame: Pandas dataframe with parsed logs
+    """
+    filepath = os.path.join(path, filename)
+    with open(filepath, 'r') as f:
+        text = [line.strip() for line in f.readlines()]
+
+    model = re.search(model_pattern, filename).group(1)
+    train_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Train Instance' in i] # noqa
+    test_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Test Instance' in i]  # noqa
+    epochs = [int(re.search('Epoch (\d+)', i).group(1)) for i in text if 'Epoch' in i]  # noqa
+
+    df = pd.DataFrame({
+        'epochs': epochs,
+        'train': train_acc,
+        'test': test_acc,
+        'model': model
+    })
+    return df
+
+
+def plot_log(
+    df: pd.DataFrame,
+    title: str = '',
+    figsize: tuple[int, int] = (8, 5),
+    store_plots: str = None,
+    font_size: int = 10
+):
+    """Plots learning curves for a df containing logs, with
+        columns ['epochs', 'train', 'test', 'model']
+
+    Args:
+        df (pd.DataFrame): DataFrame with logged info
+        title (str, optional): Title of the plot. Defaults to ''.
+        figsize (tuple[int, int], optional): Size of the plot.
+            Defaults to (8, 5).
+        store_plots (str, optional): Path to store plots in. Defaults to None.
+        font_size (int, optional): Controls plot font size, defaults 10.
+    """
+    x = df.epochs
+    plt.rcParams.update({'font.size': font_size})
+    plt.figure(figsize=figsize)
+    plt.title(title)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.ylim(0, 1.05)
+    plt.plot(x, df.train, label='Train Accuracy')
+    plt.plot(x, df.test, label='Test Accuracy')
+    plt.grid()
+    plt.legend(loc='lower right')
+    plt.tight_layout()
+    if store_plots is not None:
+        plt.savefig(
+            os.path.join(store_plots, f'curves_{df.model[0]}.png'),
+            bbox_inches='tight'
+        )
+    plt.show()
+    plt.close()
