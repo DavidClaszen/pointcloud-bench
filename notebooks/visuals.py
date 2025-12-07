@@ -204,14 +204,15 @@ def plot_log(
     plt.ylabel('Accuracy')
     plt.ylim(0, 1.05)
     plt.plot(x, df.train, label='Train Accuracy')
-    plt.plot(x, df.test, label='Test Accuracy')
+    plt.plot(x, df.test, label='Validation Accuracy')
     plt.grid()
     plt.legend(loc='lower right')
     plt.tight_layout()
     if store_plots is not None:
         plt.savefig(
-            os.path.join(store_plots, f'curves_{df.model[0]}.png'),
-            bbox_inches='tight'
+            os.path.join(store_plots, f'curves_{df.model[0]}.svg'),
+            bbox_inches='tight',
+            format='svg'
         )
     plt.show()
     plt.close()
