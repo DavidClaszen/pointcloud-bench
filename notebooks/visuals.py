@@ -150,7 +150,7 @@ def visualize_samples(
 def parse_log(
     path: str,
     filename: str,
-    model_pattern: str = '(.*)\.'  # noqa
+    model_pattern: str = r'(.*)\.'
 ) -> pd.DataFrame:
     """Parses PCT logs by regex, returns a df with
         columns ['epochs', 'train', 'test', 'model']
@@ -165,9 +165,9 @@ def parse_log(
         text = [line.strip() for line in f.readlines()]
 
     model = re.search(model_pattern, filename).group(1)
-    train_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Train Instance' in i] # noqa
-    test_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Test Instance' in i]  # noqa
-    epochs = [int(re.search('Epoch (\d+)', i).group(1)) for i in text if 'Epoch' in i]  # noqa
+    train_acc = [float(re.search(r': (\d\.\d{6})', i).group(1)) for i in text if 'Train Instance' in i]
+    test_acc = [float(re.search(r': (\d\.\d{6})', i).group(1)) for i in text if 'Test Instance' in i]
+    epochs = [int(re.search(r'Epoch (\d+)', i).group(1)) for i in text if 'Epoch' in i]
 
     df = pd.DataFrame({
         'epochs': epochs,
