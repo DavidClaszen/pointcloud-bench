@@ -150,7 +150,7 @@ def visualize_samples(
 def parse_log(
     path: str,
     filename: str,
-    model_pattern: str = '(.*)\.'  # noqa
+    model_pattern: str = r'(.*)\.'
 ) -> pd.DataFrame:
     """Parses PCT logs by regex, returns a df with
         columns ['epochs', 'train', 'test', 'model']
@@ -165,9 +165,9 @@ def parse_log(
         text = [line.strip() for line in f.readlines()]
 
     model = re.search(model_pattern, filename).group(1)
-    train_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Train Instance' in i] # noqa
-    test_acc = [float(re.search(': (\d\.\d{6})', i).group(1)) for i in text if 'Test Instance' in i]  # noqa
-    epochs = [int(re.search('Epoch (\d+)', i).group(1)) for i in text if 'Epoch' in i]  # noqa
+    train_acc = [float(re.search(r': (\d\.\d{6})', i).group(1)) for i in text if 'Train Instance' in i]
+    test_acc = [float(re.search(r': (\d\.\d{6})', i).group(1)) for i in text if 'Test Instance' in i]
+    epochs = [int(re.search(r'Epoch (\d+)', i).group(1)) for i in text if 'Epoch' in i]
 
     df = pd.DataFrame({
         'epochs': epochs,
@@ -204,14 +204,15 @@ def plot_log(
     plt.ylabel('Accuracy')
     plt.ylim(0, 1.05)
     plt.plot(x, df.train, label='Train Accuracy')
-    plt.plot(x, df.test, label='Test Accuracy')
+    plt.plot(x, df.test, label='Validation Accuracy')
     plt.grid()
     plt.legend(loc='lower right')
     plt.tight_layout()
     if store_plots is not None:
         plt.savefig(
-            os.path.join(store_plots, f'curves_{df.model[0]}.png'),
-            bbox_inches='tight'
+            os.path.join(store_plots, f'curves_{df.model[0]}.svg'),
+            bbox_inches='tight',
+            format='svg'
         )
     plt.show()
     plt.close()
