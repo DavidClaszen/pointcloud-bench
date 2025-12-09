@@ -13,3 +13,6 @@ tensorboardX
 open3d
 trimesh
 ipympl
+fvcore
+iopath
+portalocker

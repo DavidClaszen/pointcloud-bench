@@ -8,3 +8,4 @@ tqdm
 lie_learn @ git+https://github.com/AMLab-Amsterdam/lie_learn@master
 transforms3d
 tensorboardX
+fvcore
